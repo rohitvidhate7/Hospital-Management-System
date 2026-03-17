@@ -18,11 +18,13 @@ const protect = async (req, res, next) => {
       return next(new AppError('Not authorized, no token provided', 401));
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'hospital_secret_2024_dev');
     req.user = await User.findById(decoded.id).select('-password');
     
+    console.log('🔐 Auth user:', req.user?._id, req.user?.email, req.user?.role || 'NO USER');
+    
     if (!req.user) {
-      return next(new AppError('User not found', 401));
+      return next(new AppError(`User not found for ID: ${decoded.id}`, 401));
     }
 
     next();

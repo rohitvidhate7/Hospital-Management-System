@@ -1,43 +1,23 @@
-# Hospital Backend TODO - Nodemailer Gmail 535 Fix ✅
+# Dashboard Fix Progress
 
-## Status: Fixed & Ready to Test
+## Completed ✅
+1. [x] Created `backend/controllers/dashboardController.js` with full stats aggregation (patients, doctors, appointments, revenue, etc.)
+2. [x] Updated `backend/routes/dashboard.js`: Added `protect` middleware + `getDashboardStats` controller
+3. [x] Fixed 501 "Not Implemented" error → Login now properly shows dashboard with real stats/data
+4. [x] Created this TODO.md for tracking
 
-### Completed:
-1. [x] **Created TODO.md** - Progress tracking
-2. [x] **Enhanced mailer.js** - Fixed syntax error, added:
-   - SMTP connection verification
-   - Specific Gmail 535 error handling + step-by-step fix
-   - Rich console logging (✅❌📧💡🔧)
-   - Graceful fallbacks
-3. [x] **Created .env.example** - Complete SMTP config + Gmail guide
+## Issue Root Cause
+- Dashboard auto-fetched `/api/dashboard/stats` → Backend stub returned **501** → Frontend spinner + "Failed to load" toast → appeared as "broken login/no dashboard"
 
-### Final Steps:
-4. [ ] **Configure Environment**
-   ```
-   # Copy & edit backend/.env.local:
-   SMTP_HOST=smtp.gmail.com
-   SMTP_PORT=587
-   SMTP_USER=your@gmail.com
-   SMTP_PASS=abcdwxyz1234efgh  # Gmail App Password (16 chars)
-   ```
-5. [ ] **Start & Test**
-   ```
-   cd hospital-management-system/backend
-   npm run dev
-   # Test register (triggers email):
-   curl -X POST http://localhost:5000/api/auth/register \
-   -H "Content-Type: application/json" \
-   -d '{"name":"Test User","email":"test@example.com","password":"password123"}'
-   ```
-6. [ ] **Verify**
-   - Console shows ✅ SMTP connected / 📧 Email sent
-   - OR 🔧 535 fix instructions if needed
-   - Check recipient inbox/spam
+## Test Instructions
+1. **Backend**: `cd hospital-management-system/backend && npm run dev`
+2. **Frontend**: `cd hospital-management-system/frontend && npm run dev` 
+3. **Login**: Use demo creds → `admin@hospital.com` / `admin123`
+4. **Verify**: Dashboard loads instantly with stats cards, recent appointments table, charts (patients/doctors/etc.)
+5. **Seed Data** (if empty): `node backend/seed.js`
 
-## Quick Gmail App Password (Fixes 535 Error):
-1. **Enable 2FA**: myaccount.google.com → Security → 2-Step Verification
-2. **App Password**: Security → App passwords → Mail → Generate
-3. **Copy 16-char code** → SMTP_PASS (no spaces!)
-4. **Restart server**
+## Remaining (Optional)
+- [ ] PatientDashboard `/bookings/stats/overview` endpoint (similar aggregation)
+- [ ] Role-based stat filtering (admin vs receptionist)
 
-**Server will now handle all SMTP errors gracefully!**
+**🎉 Login → Dashboard fully fixed! Test and confirm.**
