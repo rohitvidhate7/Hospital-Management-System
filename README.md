@@ -50,21 +50,28 @@ cd ../frontend
 npm install
 ```
 
-### 1.1 Configure Backend Environment
+### 1.1 MongoDB Atlas Setup (Recommended - Free)
 
-Create `backend/.env` and set:
+1. **Create free cluster**: https://www.mongodb.com/cloud/atlas/register
+2. **Whitelist IP**: Network Access → Add IP → "Allow Access from Anywhere (0.0.0.0/0)"
+3. **Get connection string**: Cluster → Connect → Drivers → Copy
 
+### 1.2 Configure Backend (.env)
+
+```bash
+cd backend
+cp .env.example .env
+```
+
+**Edit `backend/.env`**:
 ```env
-PORT=5000
-MONGO_URI=mongodb://127.0.0.1:27017/hospital_management
-JWT_SECRET=your_jwt_secret_here
+MONGO_URI="mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/hospital"
+JWT_SECRET=$(node -e "console.log(require('crypto').randomBytes(64).toString('hex'))")
+```
 
-# Optional SMTP for real emails. Without these, app logs email preview to backend console.
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your_email@example.com
-SMTP_PASS=your_smtp_password
-SMTP_FROM=MedCare <no-reply@medcare.com>
+**Local MongoDB** (alternative):
+```env
+MONGO_URI="mongodb://127.0.0.1:27017/hospital_management"
 ```
 
 ### 2. Seed the Database (Recommended)

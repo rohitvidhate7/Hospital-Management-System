@@ -1,10 +1,14 @@
 const mongoose = require('mongoose');
 
+/**
+ * Patient Model - Complete enhanced schema for Hospital Management
+ */
 const patientSchema = new mongoose.Schema({
   name: {
     type: String,
     required: [true, 'Patient name is required'],
     trim: true,
+    index: true,
   },
   email: {
     type: String,
@@ -15,10 +19,15 @@ const patientSchema = new mongoose.Schema({
   phone: {
     type: String,
     required: [true, 'Phone number is required'],
+    unique: true,
+    trim: true,
+    index: true,
   },
   age: {
     type: Number,
     required: [true, 'Age is required'],
+    min: 0,
+    max: 120,
   },
   gender: {
     type: String,
@@ -27,7 +36,7 @@ const patientSchema = new mongoose.Schema({
   },
   bloodGroup: {
     type: String,
-    enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', ''],
+    enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
     default: '',
   },
   address: {
@@ -48,10 +57,14 @@ const patientSchema = new mongoose.Schema({
     enum: ['Active', 'Discharged', 'Critical'],
     default: 'Active',
   },
-  registeredDate: {
-    type: Date,
-    default: Date.now,
-  },
-}, { timestamps: true });
+}, {
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true },
+});
+
+// Compound text index for search
+patientSchema.index({ name: 'text', phone: 'text', email: 'text' });
 
 module.exports = mongoose.model('Patient', patientSchema);
+

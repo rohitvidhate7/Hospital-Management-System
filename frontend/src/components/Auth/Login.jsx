@@ -158,7 +158,7 @@ export default function Login() {
         <p className="text-blue-300 text-sm relative z-10">
           &copy; 2026 Mediflix+. All rights reserved.
           <br />
-          <span className="text-xs text-blue-400">Designed by <span className="font-semibold text-cyan-300">Akshat</span></span>
+          <span className="text-xs text-blue-400">Designed by <span className="font-semibold text-cyan-300">Rohit Vidhate</span></span>
         </p>
       </div>
 
@@ -400,7 +400,7 @@ export default function Login() {
 
       {/* LinkedIn floating button */}
       <a
-        href="https://www.linkedin.com/in/akshatsaini05/"
+        href="www.linkedin.com/in/rohitvidhate"
         target="_blank"
         rel="noopener noreferrer"
         title="Connect on LinkedIn"

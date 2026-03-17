@@ -32,7 +32,7 @@ export default function Layout() {
 
       {/* LinkedIn floating button */}
       <a
-        href="https://www.linkedin.com/in/akshatsaini05/"
+        href="hwww.linkedin.com/in/rohitvidhate"
         target="_blank"
         rel="noopener noreferrer"
         title="Connect on LinkedIn"
