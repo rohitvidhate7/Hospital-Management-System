@@ -23,8 +23,8 @@ export default function AppointmentList() {
       const params = {};
       if (statusFilter) params.status = statusFilter;
       const { data } = await API.get('/appointments', { params });
-      setAppointments(data.appointments);
-      setTotal(data.total);
+      setAppointments(data.appointments || []);
+      setTotal(data.pagination?.total || 0);
     } catch (error) {
       toast.error('Failed to load appointments');
     } finally {

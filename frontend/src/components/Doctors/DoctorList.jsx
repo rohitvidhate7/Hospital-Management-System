@@ -22,8 +22,8 @@ export default function DoctorList() {
       if (search) params.search = search;
       if (statusFilter) params.status = statusFilter;
       const { data } = await API.get('/doctors', { params });
-      setDoctors(data.doctors);
-      setTotal(data.total);
+      setDoctors(data.doctors || []);
+      setTotal(data.pagination?.total || 0);
     } catch (error) {
       toast.error('Failed to load doctors');
     } finally {

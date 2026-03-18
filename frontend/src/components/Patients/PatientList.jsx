@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FiPlus, FiSearch, FiEdit2, FiTrash2, FiPhone, FiMail, FiFilter } from 'react-icons/fi';
+import { FiPlus, FiSearch, FiEdit2, FiTrash2, FiPhone, FiMail, FiFilter, FiUsers } from 'react-icons/fi';
 import API from '../../api/axios';
 import toast from 'react-hot-toast';
 
@@ -22,8 +22,8 @@ export default function PatientList() {
       if (search) params.search = search;
       if (statusFilter) params.status = statusFilter;
       const { data } = await API.get('/patients', { params });
-      setPatients(data.patients);
-      setTotal(data.total);
+      setPatients(data.patients || []);
+      setTotal(data.pagination?.total || 0);
     } catch (error) {
       toast.error('Failed to load patients');
     } finally {

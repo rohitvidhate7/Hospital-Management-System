@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
+import ErrorBoundary from './ErrorBoundary';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import { FiLinkedin } from 'react-icons/fi';
@@ -19,9 +20,11 @@ export default function Layout() {
         <Navbar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
         <main className="p-4 lg:p-6 min-h-[calc(100vh-4rem)]">
+        <ErrorBoundary>
           <div className="animate-fadeIn">
             <Outlet />
           </div>
+        </ErrorBoundary>
         </main>
 
         <footer className="px-6 py-4 border-t border-slate-200/60 text-center">
