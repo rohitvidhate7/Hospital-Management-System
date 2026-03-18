@@ -13,7 +13,11 @@ router.post('/register', validateRegister, checkValidation, register);
 // POST /api/auth/login - Public
 router.post('/login', validateLogin, checkValidation, login);
 
-// TODO: Add OTP, forgot, profile routes...
+// POST /api/auth/login-otp/request - Send OTP to email
+router.post('/login-otp/request', validateOtpRequest, checkValidation, require('../controllers/authController').requestLoginOtp);
+
+// POST /api/auth/login-otp/verify - Verify OTP and login
+router.post('/login-otp/verify', validateOtpVerify, checkValidation, require('../controllers/authController').verifyLoginOtp);
 
 module.exports = router;
 

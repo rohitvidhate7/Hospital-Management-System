@@ -149,6 +149,96 @@ exports.login = async (req, res, next) => {
   }
 };
 
-// Similar exports for OTP, forgot-password, profile etc. (condensed for space - full in final)
-// ... (rest of OTP functions ported similarly with AppError and consistent res)
+// ===== OTP LOGIN ENDPOINTS =====
+
+// @desc    Request login OTP to email
+// @route   POST /api/auth/login-otp/request  
+// @access  Public
+exports.requestLoginOtp = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return next(new AppError('No account found with this email', 404));
+    }
+
+    // Generate & store OTP
+    const otp = generateOtp();
+    const otpHash = hashOtp(otp);
+    
+    user.otpCodeHash = otpHash;
+    user.otpExpiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
+    user.otpPurpose = 'login';
+    await user.save();
+
+    // Send OTP email
+    await sendOtpEmail({
+      to: user.email,
+      name: user.name,
+      otp,
+      title: 'Your Login OTP',
+    });
+
+    // Dev mode: expose OTP
+    const devOtp = process.env.NODE_ENV === 'development' ? otp : undefined;
+
+    res.status(200).json({
+      success: true,
+      message: `Login OTP sent to ${user.email}`,
+      data: { 
+        email: user.email,
+        otpSent: true,
+        devOtp, // Only in development
+        expiresIn: OTP_EXPIRY_MINUTES * 60
+      }
+    });
+  } catch (error) {
+    next(new AppError('Failed to send login OTP', 500));
+  }
+};
+
+// @desc    Verify login OTP and return auth token
+// @route   POST /api/auth/login-otp/verify
+// @access  Public
+exports.verifyLoginOtp = async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+    const now = new Date();
+
+    const user = await User.findOne({ 
+      email: email.toLowerCase(),
+      otpPurpose: 'login'
+    }).select('+otpCodeHash +otpExpiresAt +password');
+
+    if (!user) {
+      return next(new AppError('Login session not found. Please request new OTP.', 400));
+    }
+
+    // Check expiry
+    if (now > user.otpExpiresAt) {
+      clearOtpState(user);
+      await user.save();
+      return next(new AppError('OTP expired. Please request new OTP.', 400));
+    }
+
+    // Check OTP
+    const otpHash = hashOtp(otp);
+    if (otpHash !== user.otpCodeHash) {
+      return next(new AppError('Invalid OTP', 400));
+    }
+
+    // Clear OTP state
+    clearOtpState(user);
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Login successful via OTP',
+      data: sanitizeUserResponse(user)
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 

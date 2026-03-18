@@ -1,28 +1,69 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  timeout: 10000,
 });
 
-// Add auth token to requests
+// Request interceptor - add auth token
 API.interceptors.request.use((config) => {
-  const user = JSON.parse(localStorage.getItem('hospitalUser') || 'null');
-  if (user?.token) {
-    config.headers.Authorization = `Bearer ${user.token}`;
+  console.log('🌐 API Request:', {
+    method: config.method?.toUpperCase(),
+    url: config.url,
+    baseURL: API.defaults.baseURL,
+    fullURL: `${API.defaults.baseURL}${config.url}`,
+  });
+  
+  // New authState format: {user: {...}, token: '...'}
+  try {
+    const authState = JSON.parse(localStorage.getItem('authState') || 'null');
+    if (authState?.token) {
+      config.headers.Authorization = `Bearer ${authState.token}`;
+      console.log('🔐 Added Bearer token');
+    }
+  } catch (e) {
+    console.warn('⚠️ Invalid authState in localStorage, clearing...');
+    localStorage.removeItem('authState');
   }
+  
   return config;
+}, (error) => {
+  return Promise.reject(error);
 });
 
-// Handle 401 responses — skip auth endpoints so login/register errors are shown properly
+// Response interceptor - handle errors globally
 API.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('✅ API Success:', response.config.url, response.status);
+    return response;
+  },
+  
   (error) => {
-    const url = error.config?.url || '';
-    const isAuthRoute = url.startsWith('/auth/');
-    if (error.response?.status === 401 && !isAuthRoute) {
-      localStorage.removeItem('hospitalUser');
-      window.location.href = '/login';
+    if (error.response) {
+      const { status, data } = error.response;
+      console.error('❌ API Error:', {
+        status,
+        url: error.config?.url,
+        message: data?.message || 'Unknown error',
+      });
+      
+      // Auto-logout on 401 (except auth routes)
+      const url = error.config?.url || '';
+      const isAuthRoute = url.includes('/auth/');
+      if (status === 401 && !isAuthRoute) {
+        console.log('🔓 Token expired/unauthorized - logging out');
+        localStorage.removeItem('authState');
+        localStorage.removeItem('hospitalUser'); // Legacy
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login?session=expired';
+        }
+      }
+    } else if (error.request) {
+      console.error('❌ Network Error:', error.request);
+    } else {
+      console.error('❌ Setup Error:', error.message);
     }
+    
     return Promise.reject(error);
   }
 );

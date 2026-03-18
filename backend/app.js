@@ -67,6 +67,22 @@ app.use('/api/bookings', protect, require('./routes/bookings'));
 app.use('/api/payments', protect, require('./routes/payments'));
 app.use('/api/dashboard', protect, require('./routes/dashboard'));
 
+// 404 handler for API routes
+app.use('/api/*', (req, res, next) => {
+  console.error(`🚫 404 API Route Not Found: ${req.method} ${req.originalUrl}`);
+  console.error('Available routes:', [
+    '/api/health', '/api/auth/*', '/api/patients', '/api/doctors',
+    '/api/departments', '/api/services', '/api/appointments', 
+    '/api/bookings', '/api/payments', '/api/dashboard'
+  ].join('\\n'));
+  return res.status(404).json({
+    success: false,
+    message: `API route not found: ${req.originalUrl}`,
+    method: req.method,
+    available: ['/api/health', '/api/auth/login', '/api/auth/register']
+  });
+});
+
 // Global error handler - last
 app.use(errorHandler);
 
