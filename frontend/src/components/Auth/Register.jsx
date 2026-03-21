@@ -41,7 +41,7 @@ export default function Register() {
       await register(formData);
       toast.success('Account created successfully!');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Registration failed');
+      toast.error(error.response?.data?.message || error.message || 'Registration failed. Please check your details and try again.');
     } finally {
       setLoading(false);
     }
@@ -255,7 +255,7 @@ export default function Register() {
                   await googleLogin(credentialResponse.credential);
                   toast.success('Account created with Google!');
                 } catch (error) {
-                  toast.error(error.response?.data?.message || 'Google sign-in failed');
+                  toast.error(error.response?.data?.message || error.message || 'Google sign-up failed. Please try again.');
                 }
               }}
               onError={() => toast.error('Google Sign-In failed')}

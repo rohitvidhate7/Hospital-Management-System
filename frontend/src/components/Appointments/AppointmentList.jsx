@@ -26,7 +26,7 @@ export default function AppointmentList() {
       setAppointments(data.appointments || []);
       setTotal(data.pagination?.total || 0);
     } catch (error) {
-      toast.error('Failed to load appointments');
+      toast.error(error.response?.data?.message || error.message || 'Failed to load appointments. Please refresh the page.');
     } finally {
       setLoading(false);
     }
@@ -39,7 +39,7 @@ export default function AppointmentList() {
       toast.success('Appointment deleted');
       fetchAppointments();
     } catch (error) {
-      toast.error('Failed to delete appointment');
+      toast.error(error.response?.data?.message || error.message || 'Failed to delete appointment. Please try again.');
     }
   };
 
@@ -49,7 +49,7 @@ export default function AppointmentList() {
       toast.success(`Appointment marked as ${newStatus}`);
       fetchAppointments();
     } catch (error) {
-      toast.error('Failed to update status');
+      toast.error(error.response?.data?.message || error.message || 'Failed to update appointment status. Please try again.');
     }
   };
 

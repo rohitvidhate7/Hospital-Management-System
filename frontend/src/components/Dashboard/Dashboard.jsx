@@ -10,22 +10,89 @@ import toast from 'react-hot-toast';
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
+  const [doctorsPreview, setDoctorsPreview] = useState([]);
+  const [patientsPreview, setPatientsPreview] = useState([]);
+  const [servicesPreview, setServicesPreview] = useState([]);
+  const [departmentsPreview, setDepartmentsPreview] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   useEffect(() => {
-    fetchStats();
+    const loadData = async () => {
+      setLoading(true);
+      setPreviewLoading(true);
+      try {
+        await Promise.all([
+          fetchStats(),
+          fetchDoctorsPreview(),
+          fetchPatientsPreview(),
+          fetchServicesPreview(),
+          fetchDepartmentsPreview()
+        ]);
+      } catch (error) {
+        console.error('Dashboard data load error:', error);
+      } finally {
+        setLoading(false);
+        setPreviewLoading(false);
+      }
+    };
+    loadData();
   }, []);
+
 
   const fetchStats = async () => {
     try {
       const { data } = await API.get('/dashboard/stats');
       setStats(data);
+      console.log('📊 Stats loaded:', {
+        totalDoctors: data?.totalDoctors,
+        availableDoctors: data?.availableDoctors,
+        totalPatients: data?.totalPatients
+      });
     } catch (error) {
-      toast.error('Failed to load dashboard data');
-    } finally {
-      setLoading(false);
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to load dashboard stats';
+      console.error('Stats error:', error.response?.status, errorMsg);
+      toast.error(errorMsg);
     }
   };
+
+  const fetchDoctorsPreview = async () => {
+    try {
+      const { data } = await API.get('/doctors', { params: { limit: 4, status: 'Available' } });
+      setDoctorsPreview(data.doctors || []);
+      console.log('👨‍⚕️ Doctors preview:', data.doctors?.length);
+    } catch (error) {
+      console.error('Doctors preview error:', error);
+    }
+  };
+
+  const fetchPatientsPreview = async () => {
+    try {
+      const { data } = await API.get('/patients', { params: { limit: 4 } });
+      setPatientsPreview(data.patients || []);
+    } catch (error) {
+      console.error('Patients preview error:', error);
+    }
+  };
+
+  const fetchServicesPreview = async () => {
+    try {
+      const { data } = await API.get('/services', { params: { limit: 4 } });
+      setServicesPreview(data.services || data || []);
+    } catch (error) {
+      console.error('Services preview error:', error);
+    }
+  };
+
+  const fetchDepartmentsPreview = async () => {
+    try {
+      const { data } = await API.get('/departments', { params: { limit: 4 } });
+      setDepartmentsPreview(data.departments || data || []);
+    } catch (error) {
+      console.error('Departments preview error:', error);
+    }
+  };
+
 
   if (loading) {
     return (
@@ -209,7 +276,150 @@ export default function Dashboard() {
         ))}
       </div>
 
+      {/* Preview Sections - Doctors, Patients, Services, Departments */}
+      {previewLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="card p-8 text-center">
+              <div className="spinner w-8 h-8 border-3 border-slate-300 border-t-transparent mx-auto mb-3"></div>
+              <p className="text-slate-500 text-sm">Loading...</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+          {/* Available Doctors */}
+          <div className="card xl:col-span-2">
+            <div className="flex items-center justify-between p-5 border-b border-slate-100">
+              <div>
+                <h3 className="font-semibold text-slate-800">Available Doctors</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Ready for consultation</p>
+              </div>
+              <Link to="/doctors" className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
+                View All <FiArrowUpRight size={12} />
+              </Link>
+            </div>
+            <div className="p-4">
+              {doctorsPreview.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {doctorsPreview.map((doctor) => (
+                    <Link key={doctor._id} to={`/doctors/${doctor._id}`} className="group flex items-center gap-3 p-3 rounded-lg hover:bg-emerald-50 transition-all border border-emerald-100 hover:border-emerald-200">
+                      <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                        {doctor.name.charAt(0)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-slate-800 text-sm group-hover:text-emerald-700 truncate">{doctor.name}</p>
+                        <p className="text-xs text-slate-500">{doctor.specialization}</p>
+                      </div>
+                      <span className={`badge badge-green text-xs px-2 py-1 ml-2`}>
+                        {doctor.availability?.status || doctor.status || 'Available'}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <FiUserPlus className="mx-auto text-slate-300 mb-2" size={32} />
+                  <p className="text-slate-500 text-sm">No available doctors</p>
+                  <Link to="/doctors/new" className="text-xs text-blue-600 mt-1 inline-block font-medium">Add Doctor →</Link>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Recent Patients */}
+          <div className="card">
+            <div className="flex items-center justify-between p-5 border-b border-slate-100">
+              <div>
+                <h3 className="font-semibold text-slate-800">Recent Patients</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Latest registrations</p>
+              </div>
+              <Link to="/patients" className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
+                View All <FiArrowUpRight size={12} />
+              </Link>
+            </div>
+            <div className="p-3 max-h-64 overflow-y-auto">
+              {patientsPreview.length > 0 ? (
+                patientsPreview.map((patient) => (
+                  <div key={patient._id} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-slate-50 transition-colors">
+                    <div className="w-9 h-9 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg flex items-center justify-center text-xs font-bold text-blue-600">
+                      {patient.name?.charAt(0)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-slate-700 text-sm truncate">{patient.name}</p>
+                      <p className="text-xs text-slate-400">{patient.phone}</p>
+                    </div>
+                    <span className={`badge text-[10px] ${
+                      patient.status === 'Active' ? 'badge-green' : 
+                      patient.status === 'Critical' ? 'badge-red' : 'badge-gray'
+                    }`}>
+                      {patient.status}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-6 text-slate-400 text-sm">No patients yet</div>
+              )}
+            </div>
+          </div>
+
+          {/* Top Services */}
+          <div className="card">
+            <div className="flex items-center justify-between p-5 border-b border-slate-100">
+              <div>
+                <h3 className="font-semibold text-slate-800">Top Services</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Popular procedures</p>
+              </div>
+              <Link to="/services" className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
+                View All <FiArrowUpRight size={12} />
+              </Link>
+            </div>
+            <div className="p-3 max-h-64 overflow-y-auto">
+              {servicesPreview.length > 0 ? (
+                servicesPreview.map((service) => (
+                  <div key={service._id} className="flex items-center justify-between p-2.5 rounded-lg hover:bg-slate-50 transition-colors">
+                    <div>
+                      <p className="font-medium text-slate-700 text-sm truncate">{service.name}</p>
+                      <p className="text-xs text-slate-400">₹{service.price?.toLocaleString()}</p>
+                    </div>
+                    <span className="text-xs font-medium text-emerald-600">Popular</span>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-6 text-slate-400 text-sm">No services yet</div>
+              )}
+            </div>
+          </div>
+
+          {/* Departments */}
+          <div className="card">
+            <div className="flex items-center justify-between p-5 border-b border-slate-100">
+              <div>
+                <h3 className="font-semibold text-slate-800">Departments</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Specialties overview</p>
+              </div>
+              <Link to="/departments" className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
+                View All <FiArrowUpRight size={12} />
+              </Link>
+            </div>
+            <div className="p-3">
+              {departmentsPreview.length > 0 ? (
+                departmentsPreview.map((dept) => (
+                  <div key={dept._id} className="flex items-center justify-between py-2 border-b border-slate-50 last:border-b-0">
+                    <span className="text-sm font-medium text-slate-700">{dept.name}</span>
+                    <span className="text-xs text-slate-500">{stats?.departmentStats?.find(d => d.name === dept.name)?.count || 0} doctors</span>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-6 text-slate-400 text-sm">No departments</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Bottom Section */}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Appointments */}
         <div className="lg:col-span-2 card">

@@ -61,7 +61,7 @@ export default function Login() {
       toast.success('OTP sent to your email');
       if (data?.devOtp) toast.success(`Dev OTP: ${data.devOtp}`);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to send OTP');
+      toast.error(error.response?.data?.message || error.message || 'Failed to send OTP. Please check your email and try again.');
     } finally {
       setLoading(false);
     }
@@ -84,7 +84,7 @@ export default function Login() {
       }
       toast.success('Welcome back!');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Login failed');
+      toast.error(error.response?.data?.message || error.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
@@ -105,7 +105,7 @@ export default function Login() {
         toast.success('Welcome!');
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Login failed');
+      toast.error(error.response?.data?.message || error.message || 'Google login failed. Please try again.');
     } finally {
       setLoading(false);
     }

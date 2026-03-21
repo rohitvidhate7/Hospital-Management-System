@@ -23,7 +23,7 @@ export default function DepartmentList() {
       const totalState = data.pagination?.total || data.length || 0;
       // Note: No total state var, but consistent with backend
     } catch (error) {
-      toast.error('Failed to load departments');
+      toast.error(error.response?.data?.message || error.message || 'Failed to load departments. Please refresh the page.');
     } finally {
       setLoading(false);
     }
@@ -36,7 +36,7 @@ export default function DepartmentList() {
       toast.success('Department deleted successfully');
       fetchDepartments();
     } catch (error) {
-      toast.error('Failed to delete department');
+      toast.error(error.response?.data?.message || error.message || 'Failed to delete department. Please try again.');
     }
   };
 

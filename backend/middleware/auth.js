@@ -35,11 +35,13 @@ const protect = async (req, res, next) => {
 
 const authorize = (...roles) => {
   return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
+    if (req.user.role === 'admin' || roles.includes(req.user.role)) {
+      next();
+    } else {
       return next(new AppError(`Role ${req.user.role} is not authorized for this action`, 403));
     }
-    next();
   };
+
 };
 
 module.exports = { protect, authorize };

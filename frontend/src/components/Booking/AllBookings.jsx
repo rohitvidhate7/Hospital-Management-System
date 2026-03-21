@@ -19,7 +19,7 @@ const AllBookings = () => {
       // API returns { bookings: [...], total, totalPages, currentPage }
       setBookings(res.data.bookings || res.data);
     } catch (err) {
-      toast.error('Failed to load bookings');
+      toast.error(err.response?.data?.message || err.message || 'Failed to load bookings. Please refresh the page.');
     } finally {
       setLoading(false);
     }
@@ -31,7 +31,7 @@ const AllBookings = () => {
       toast.success(`Booking ${status}`);
       fetchBookings();
     } catch (err) {
-      toast.error('Failed to update booking');
+      toast.error(err.response?.data?.message || err.message || 'Failed to update booking status. Please try again.');
     }
   };
 

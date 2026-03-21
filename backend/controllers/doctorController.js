@@ -6,6 +6,8 @@ const AppError = require('../utils/AppError');
 exports.getDoctors = async (req, res, next) => {
   try {
     const { search, status, page = 1, limit = 10 } = req.query;
+    console.log('🔍 Doctors query:', { search, status, page, limit });
+
     const queryObj = {};
 
     if (search) {

@@ -101,8 +101,9 @@ export const AuthProvider = ({ children }) => {
       const response = await API.post('/auth/login', { email, password });
       return saveAuth(response.data);
     } catch (error) {
-      console.error('💥 Login failed:', error.response?.data?.message || error.message);
-      throw new Error(error.response?.data?.message || 'Login failed');
+      const errorMsg = error.response?.data?.message || error.message || 'Login failed';
+      console.error('💥 Login failed:', errorMsg);
+      throw new Error(errorMsg);
     }
   };
 
@@ -112,8 +113,9 @@ export const AuthProvider = ({ children }) => {
       const response = await API.post('/auth/register', userData);
       return saveAuth(response.data);
     } catch (error) {
-      console.error('💥 Register failed:', error.response?.data?.message || error.message);
-      throw new Error(error.response?.data?.message || 'Registration failed');
+      const errorMsg = error.response?.data?.message || error.message || 'Registration failed';
+      console.error('💥 Register failed:', errorMsg);
+      throw new Error(errorMsg);
     }
   };
 
@@ -123,8 +125,9 @@ export const AuthProvider = ({ children }) => {
       const response = await API.post('/auth/google', { credential, role });
       return saveAuth(response.data);
     } catch (error) {
-      console.error('💥 Google login failed:', error.response?.data?.message || error.message);
-      throw new Error(error.response?.data?.message || 'Google login failed');
+      const errorMsg = error.response?.data?.message || error.message || 'Google login failed';
+      console.error('💥 Google login failed:', errorMsg);
+      throw new Error(errorMsg);
     }
   };
 

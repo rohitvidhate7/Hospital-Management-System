@@ -25,7 +25,7 @@ export default function DoctorList() {
       setDoctors(data.doctors || []);
       setTotal(data.pagination?.total || 0);
     } catch (error) {
-      toast.error('Failed to load doctors');
+      toast.error(error.response?.data?.message || error.message || 'Failed to load doctors. Please refresh the page.');
     } finally {
       setLoading(false);
     }
@@ -38,7 +38,7 @@ export default function DoctorList() {
       toast.success('Doctor deleted successfully');
       fetchDoctors();
     } catch (error) {
-      toast.error('Failed to delete doctor');
+      toast.error(error.response?.data?.message || error.message || 'Failed to delete doctor. Please try again.');
     }
   };
 

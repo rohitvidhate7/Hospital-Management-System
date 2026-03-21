@@ -56,7 +56,7 @@ export default function AppointmentForm() {
         fee: data.fee || '',
       });
     } catch (error) {
-      toast.error('Failed to load appointment');
+      toast.error(error.response?.data?.message || error.message || 'Failed to load appointment details. Returning to list.');
       navigate('/appointments');
     } finally {
       setFetching(false);
@@ -94,7 +94,7 @@ export default function AppointmentForm() {
       }
       navigate('/appointments');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to save appointment');
+      toast.error(error.response?.data?.message || error.message || 'Failed to save appointment. Please check your input and try again.');
     } finally {
       setLoading(false);
     }

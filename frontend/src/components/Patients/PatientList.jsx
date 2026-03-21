@@ -25,7 +25,7 @@ export default function PatientList() {
       setPatients(data.patients || []);
       setTotal(data.pagination?.total || 0);
     } catch (error) {
-      toast.error('Failed to load patients');
+      toast.error(error.response?.data?.message || error.message || 'Failed to load patients. Please refresh the page.');
     } finally {
       setLoading(false);
     }
@@ -38,7 +38,7 @@ export default function PatientList() {
       toast.success('Patient deleted successfully');
       fetchPatients();
     } catch (error) {
-      toast.error('Failed to delete patient');
+      toast.error(error.response?.data?.message || error.message || 'Failed to delete patient. Please try again.');
     }
   };
 
