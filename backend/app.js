@@ -19,33 +19,7 @@ connectDB();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Security
-app.use(helmet());
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: { success: false, message: 'Too many requests, please try again later.' },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-app.use('/api', limiter);
-
-// CORS - secure origins
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://127.0.0.1:5173',
-  process.env.FRONTEND_URL || '',
-].filter(Boolean);
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.some(o => origin.startsWith(o))) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-}));
+// CORS - FIRST (before security)\nconst allowedOrigins = [\n  'http://localhost:5173',\n  'http://127.0.0.1:5173',\n  process.env.FRONTEND_URL || '',\n].filter(Boolean);\napp.use(cors({\n  origin: allowedOrigins,\n  credentials: true\n}));\n\n// Security\napp.use(helmet());\nconst limiter = rateLimit({\n  windowMs: 15 * 60 * 1000, // 15 minutes\n  max: 100, // limit each IP to 100 requests per windowMs\n  message: { success: false, message: 'Too many requests, please try again later.' },\n  standardHeaders: true,\n  legacyHeaders: false,\n});\napp.use('/api', limiter);
 
 // Health check - public
 app.get('/api/health', (req, res) => {
@@ -59,7 +33,7 @@ app.get('/api/health', (req, res) => {
 // API Routes v1 - all protected by default
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/patients', protect, require('./routes/patients'));
-app.use('/api/doctors', protect, require('./routes/doctors'));
+app.use('/api/doctors', require('./routes/doctors')); // TEMP public for dashboard/DoctorList
 app.use('/api/departments', protect, require('./routes/departments'));
 app.use('/api/services', protect, require('./routes/services'));
 app.use('/api/appointments', protect, require('./routes/appointments'));
