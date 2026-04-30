@@ -32,7 +32,6 @@ A full-stack **MERN** (MongoDB, Express.js, React.js, Node.js) Hospital Manageme
 
 - **Node.js** v16+ installed
 - **MongoDB** running locally on port 27017 (or update `.env`)
-  - Download: https://www.mongodb.com/try/download/community
 
 ## Quick Start
 
