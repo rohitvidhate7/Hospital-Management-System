@@ -7,6 +7,8 @@ import ForgotPassword from './components/Auth/ForgotPassword';
 import AccountSecurity from './components/Auth/AccountSecurity';
 import Dashboard from './components/Dashboard/Dashboard';
 import PatientDashboard from './components/Dashboard/PatientDashboard';
+import DoctorDashboard from './components/Dashboard/DoctorDashboard';
+import ReceptionistDashboard from './components/Dashboard/ReceptionistDashboard';
 import PatientList from './components/Patients/PatientList';
 import PatientForm from './components/Patients/PatientForm';
 import DoctorList from './components/Doctors/DoctorList';
@@ -44,7 +46,21 @@ const ProtectedRoute = ({ children }) => {
 
 const RoleDashboard = () => {
   const { user } = useAuth();
-  return user?.role === 'patient' ? <PatientDashboard /> : <Dashboard />;
+  
+  // Route to the appropriate dashboard based on user role
+  switch (user?.role) {
+    case 'admin':
+      return <Dashboard />;
+    case 'doctor':
+      return <DoctorDashboard />;
+    case 'receptionist':
+      return <ReceptionistDashboard />;
+    case 'patient':
+      return <PatientDashboard />;
+    default:
+      // Fallback to main Dashboard for unknown roles (or use as admin default)
+      return <Dashboard />;
+  }
 };
 
 function App() {

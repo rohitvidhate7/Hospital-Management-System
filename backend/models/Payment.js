@@ -10,6 +10,30 @@ const paymentSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Appointment',
   },
+  // New simplified amount field (task requirement)
+  amount: {
+    type: Number,
+    required: [true, 'Amount is required'],
+    min: 0,
+  },
+  // New simplified status (Paid, Pending, Failed - task requirement)
+  status: {
+    type: String,
+    enum: ['Paid', 'Pending', 'Failed'],
+    default: 'Pending',
+  },
+  // Simplified payment method (Cash, UPI, Card - task requirement)
+  paymentMethod: {
+    type: String,
+    enum: ['Cash', 'UPI', 'Card'],
+    default: 'Cash',
+  },
+  // Transaction ID for tracking
+  transactionId: {
+    type: String,
+    default: '',
+  },
+  // Legacy fields - kept for backward compatibility
   items: [{
     description: { type: String, required: true },
     amount: { type: Number, required: true, min: 0 },
@@ -17,42 +41,28 @@ const paymentSchema = new mongoose.Schema({
   }],
   subtotal: {
     type: Number,
-    required: true,
-    min: 0,
+    default: 0,
   },
   tax: {
     type: Number,
     default: 0,
-    min: 0,
   },
   discount: {
     type: Number,
     default: 0,
-    min: 0,
   },
   totalAmount: {
     type: Number,
-    required: true,
-    min: 0,
+    default: 0,
   },
   paidAmount: {
     type: Number,
     default: 0,
-    min: 0,
-  },
-  paymentMethod: {
-    type: String,
-    enum: ['Cash', 'Card', 'UPI', 'Net Banking', 'Insurance', 'Other'],
-    default: 'Cash',
   },
   paymentStatus: {
     type: String,
     enum: ['Pending', 'Partial', 'Paid', 'Refunded', 'Cancelled'],
     default: 'Pending',
-  },
-  transactionId: {
-    type: String,
-    default: '',
   },
   invoiceNumber: {
     type: String,

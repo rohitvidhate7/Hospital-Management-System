@@ -32,8 +32,11 @@ app.get('/api/health', (req, res) => {
 
 // API Routes v1 - all protected by default
 app.use('/api/auth', require('./routes/auth'));
+// Patients - protected but accessible to all authenticated users (for viewing)
 app.use('/api/patients', protect, require('./routes/patients'));
-app.use('/api/doctors', require('./routes/doctors')); // TEMP public for dashboard/DoctorList
+// Doctors - protected for security  
+app.use('/api/doctors', protect, require('./routes/doctors'));
+// Other routes - protected
 app.use('/api/departments', protect, require('./routes/departments'));
 app.use('/api/services', protect, require('./routes/services'));
 app.use('/api/appointments', protect, require('./routes/appointments'));

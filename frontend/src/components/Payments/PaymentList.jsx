@@ -4,10 +4,13 @@ import { FiPlus, FiSearch, FiEdit2, FiTrash2, FiFilter, FiDollarSign, FiCreditCa
 import API from '../../api/axios';
 import toast from 'react-hot-toast';
 
+// Status colors based on task requirement: Paid→Green, Pending→Yellow, Failed→Red
 const statusColor = {
-  Pending: 'bg-amber-100 text-amber-700',
-  Partial: 'bg-blue-100 text-blue-700',
   Paid: 'bg-emerald-100 text-emerald-700',
+  Pending: 'bg-amber-100 text-amber-700',
+  Failed: 'bg-red-100 text-red-700',
+  // Legacy support
+  Partial: 'bg-blue-100 text-blue-700',
   Refunded: 'bg-purple-100 text-purple-700',
   Cancelled: 'bg-red-100 text-red-700',
 };
@@ -28,10 +31,13 @@ export default function PaymentList() {
       setLoading(true);
       const params = {};
       if (search) params.search = search;
-      if (statusFilter) params.paymentStatus = statusFilter;
+      if (statusFilter) params.status = statusFilter;
       const { data } = await API.get('/payments', { params });
-      setPayments(data.payments || data);
-      if (data.summary) setSummary(data.summary);
+      // Handle nested API response
+      const paymentsData = data?.data?.payments || data?.payments || [];
+      const summaryData = data?.data?.summary || data?.summary || {};
+      setPayments(paymentsData);
+      setSummary(summaryData);
     } catch (error) {
       toast.error('Failed to load payments');
     } finally {
@@ -106,11 +112,9 @@ export default function PaymentList() {
             <FiFilter className="text-slate-400" size={16} />
             <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="form-select w-auto text-sm">
               <option value="">All Status</option>
-              <option value="Pending">Pending</option>
-              <option value="Partial">Partial</option>
               <option value="Paid">Paid</option>
-              <option value="Refunded">Refunded</option>
-              <option value="Cancelled">Cancelled</option>
+              <option value="Pending">Pending</option>
+              <option value="Failed">Failed</option>
             </select>
           </div>
         </div>
@@ -133,8 +137,7 @@ export default function PaymentList() {
               <tr className="border-b border-slate-100">
                 <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Invoice</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Patient</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Total</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Paid</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Amount</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Method</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
@@ -151,14 +154,13 @@ export default function PaymentList() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-slate-700">{p.patient?.name || '—'}</td>
-                  <td className="px-4 py-3 text-right font-semibold text-slate-800">₹{p.totalAmount?.toLocaleString()}</td>
-                  <td className="px-4 py-3 text-right text-emerald-700 font-medium">₹{p.paidAmount?.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-right font-semibold text-slate-800">₹{p.amount?.toLocaleString()}</td>
                   <td className="px-4 py-3">
                     <span className="text-xs font-medium text-slate-500">{p.paymentMethod || '—'}</span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColor[p.paymentStatus] || 'bg-slate-100 text-slate-500'}`}>
-                      {p.paymentStatus}
+                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColor[p.status] || statusColor[p.paymentStatus] || 'bg-slate-100 text-slate-500'}`}>
+                      {p.status || p.paymentStatus}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-xs text-slate-500">

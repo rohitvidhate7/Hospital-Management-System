@@ -1,19 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   FiCalendar, FiClock, FiTag, FiUser, FiCheckCircle,
   FiAlertCircle, FiDollarSign, FiArrowRight, FiActivity,
-  FiPlus, FiTrendingUp
+  FiPlus, FiTrendingUp, FiCreditCard
 } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
 import API from '../../api/axios';
 import toast from 'react-hot-toast';
 
 const statusColors = {
-  pending: 'bg-amber-100 text-amber-700',
-  confirmed: 'bg-blue-100 text-blue-700',
-  completed: 'bg-emerald-100 text-emerald-700',
-  cancelled: 'bg-red-100 text-red-700',
+  Pending: 'bg-amber-100 text-amber-700',
+  Confirmed: 'bg-blue-100 text-blue-700',
+  Completed: 'bg-emerald-100 text-emerald-700',
+  Cancelled: 'bg-red-100 text-red-700',
+  'No Show': 'bg-slate-100 text-slate-700',
 };
 
 export default function PatientDashboard() {
@@ -25,12 +26,61 @@ export default function PatientDashboard() {
 
   const fetchStats = async () => {
     try {
-      const { data } = await API.get('/bookings/stats/overview');
-      setStats(data);
+      const { data } = await API.get('/dashboard/patient');
+      setStats(data.data);
     } catch (error) {
-      toast.error('Failed to load dashboard');
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to load dashboard';
+      console.error('Patient dashboard error:', errorMsg);
+      toast.error(errorMsg);
     } finally { setLoading(false); }
   };
+
+  // Compute stats from appointments data
+  const appointmentStats = useMemo(() => {
+    if (!stats?.myAppointments) return { total: 0, confirmed: 0, pending: 0, completed: 0, upcoming: 0 };
+    const appointments = stats.myAppointments;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    return {
+      total: appointments.length,
+      confirmed: appointments.filter(a => a.status === 'Confirmed').length,
+      pending: appointments.filter(a => a.status === 'Pending').length,
+      completed: appointments.filter(a => a.status === 'Completed').length,
+      upcoming: appointments.filter(a => {
+        const aptDate = new Date(a.date);
+        return aptDate >= today && (a.status === 'Confirmed' || a.status === 'Pending');
+      }).length,
+    };
+  }, [stats?.myAppointments]);
+
+  // Compute total spent from payments
+  const totalSpent = useMemo(() => {
+    if (!stats?.payments) return 0;
+    return stats.payments
+      .filter(p => p.status === 'Paid')
+      .reduce((sum, p) => sum + (p.amount || 0), 0);
+  }, [stats?.payments]);
+
+  // Get upcoming appointments (next 7 days)
+  const upcomingAppointments = useMemo(() => {
+    if (!stats?.myAppointments) return [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const nextWeek = new Date(today);
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    
+    return stats.myAppointments
+      .filter(a => {
+        const aptDate = new Date(a.date);
+        return aptDate >= today && aptDate <= nextWeek && 
+          (a.status === 'Confirmed' || a.status === 'Pending');
+      })
+      .sort((a, b) => new Date(a.date) - new Date(b.date))
+      .slice(0, 5);
+  }, [stats?.myAppointments]);
 
   if (loading) {
     return (
@@ -41,12 +91,12 @@ export default function PatientDashboard() {
   }
 
   const statCards = [
-    { title: 'Total Bookings', value: stats?.totalBookings || 0, icon: FiCalendar, bg: 'bg-blue-50', color: 'text-blue-600' },
-    { title: 'Confirmed', value: stats?.confirmed || 0, icon: FiCheckCircle, bg: 'bg-emerald-50', color: 'text-emerald-600' },
-    { title: 'Pending', value: stats?.pending || 0, icon: FiClock, bg: 'bg-amber-50', color: 'text-amber-600' },
-    { title: 'Completed', value: stats?.completed || 0, icon: FiTrendingUp, bg: 'bg-violet-50', color: 'text-violet-600' },
-    { title: "Today's Appointments", value: stats?.todayBookings || 0, icon: FiActivity, bg: 'bg-rose-50', color: 'text-rose-600' },
-    { title: 'Total Spent', value: `₹${(stats?.totalRevenue || 0).toLocaleString()}`, icon: FiDollarSign, bg: 'bg-teal-50', color: 'text-teal-600' },
+    { title: 'Total Appointments', value: appointmentStats.total, icon: FiCalendar, bg: 'bg-blue-50', color: 'text-blue-600' },
+    { title: 'Confirmed', value: appointmentStats.confirmed, icon: FiCheckCircle, bg: 'bg-emerald-50', color: 'text-emerald-600' },
+    { title: 'Pending', value: appointmentStats.pending, icon: FiClock, bg: 'bg-amber-50', color: 'text-amber-600' },
+    { title: 'Completed', value: appointmentStats.completed, icon: FiTrendingUp, bg: 'bg-violet-50', color: 'text-violet-600' },
+    { title: "Upcoming", value: appointmentStats.upcoming, icon: FiActivity, bg: 'bg-rose-50', color: 'text-rose-600' },
+    { title: 'Total Spent', value: `₹${totalSpent.toLocaleString()}`, icon: FiDollarSign, bg: 'bg-teal-50', color: 'text-teal-600' },
   ];
 
   return (
@@ -123,7 +173,7 @@ export default function PatientDashboard() {
         </Link>
       </div>
 
-      {/* Upcoming Appointments */}
+{/* Upcoming Appointments */}
       <div className="card">
         <div className="flex items-center justify-between p-5 border-b border-slate-100">
           <div>
@@ -135,35 +185,30 @@ export default function PatientDashboard() {
           </Link>
         </div>
 
-        {stats?.upcomingBookings?.length > 0 ? (
+        {upcomingAppointments?.length > 0 ? (
           <div className="divide-y divide-slate-50">
-            {stats.upcomingBookings.map(booking => (
-              <div key={booking._id} className="flex items-center gap-4 p-4 hover:bg-blue-50/30 transition-colors">
-                <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                  booking.type === 'service' ? 'bg-purple-100' : 'bg-blue-100'
-                }`}>
-                  {booking.type === 'service'
-                    ? <FiTag className="text-purple-600" size={18} />
-                    : <FiUser className="text-blue-600" size={18} />
-                  }
+            {upcomingAppointments.map(apt => (
+              <div key={apt._id} className="flex items-center gap-4 p-4 hover:bg-blue-50/30 transition-colors">
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-blue-100">
+                  <FiUser className="text-blue-600" size={18} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-slate-700 text-sm truncate">
-                    {booking.type === 'service' ? booking.service?.name : booking.doctor?.name}
+                    Dr. {apt.doctor?.name || 'Unknown'}
                   </p>
                   <div className="flex items-center gap-3 text-xs text-slate-500 mt-0.5">
                     <span className="flex items-center gap-1">
                       <FiCalendar size={10} />
-                      {new Date(booking.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                      {new Date(apt.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                     </span>
                     <span className="flex items-center gap-1">
                       <FiClock size={10} />
-                      {booking.timeSlot}
+                      {apt.time}
                     </span>
                   </div>
                 </div>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize ${statusColors[booking.status]}`}>
-                  {booking.status}
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize ${statusColors[apt.status]}`}>
+                  {apt.status}
                 </span>
               </div>
             ))}

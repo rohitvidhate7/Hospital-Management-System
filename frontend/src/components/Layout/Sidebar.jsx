@@ -30,6 +30,13 @@ const receptionistMenu = [
   { path: '/account', icon: FiShield, label: 'Account Security' },
 ];
 
+const doctorMenu = [
+  { path: '/', icon: FiGrid, label: 'Dashboard' },
+  { path: '/appointments', icon: FiCalendar, label: 'Appointments' },
+  { path: '/patients', icon: FiUsers, label: 'Patients' },
+  { path: '/account', icon: FiShield, label: 'Account Security' },
+];
+
 const patientMenu = [
   { path: '/', icon: FiGrid, label: 'Dashboard' },
   { path: '/browse-services', icon: FiTag, label: 'Medical Services' },
@@ -41,9 +48,10 @@ const patientMenu = [
 export default function Sidebar({ isOpen, setIsOpen }) {
   const { logout, user } = useAuth();
 
-  const getMenuItems = () => {
+const getMenuItems = () => {
     if (user?.role === 'patient') return patientMenu;
     if (user?.role === 'receptionist') return receptionistMenu;
+    if (user?.role === 'doctor') return doctorMenu;
     return adminMenu;
   };
 

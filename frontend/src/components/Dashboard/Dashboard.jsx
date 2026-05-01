@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -37,17 +38,17 @@ export default function Dashboard() {
       }
     };
     loadData();
-  }, []);
-
+}, []);
 
   const fetchStats = async () => {
     try {
-      const { data } = await API.get('/dashboard/stats');
-      setStats(data);
-      console.log('📊 Stats loaded:', {
-        totalDoctors: data?.totalDoctors,
-        availableDoctors: data?.availableDoctors,
-        totalPatients: data?.totalPatients
+      // Fetch admin-specific dashboard stats
+      const { data } = await API.get('/dashboard/admin');
+      setStats(data.data);
+      console.log('📊 Admin Stats loaded:', {
+        totalDoctors: data?.data?.totalDoctors,
+        totalPatients: data?.data?.totalPatients,
+        todayAppointments: data?.data?.todayAppointments
       });
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message || 'Failed to load dashboard stats';
@@ -59,8 +60,10 @@ export default function Dashboard() {
   const fetchDoctorsPreview = async () => {
     try {
       const { data } = await API.get('/doctors', { params: { limit: 4, status: 'Available' } });
-      setDoctorsPreview(data.doctors || []);
-      console.log('👨‍⚕️ Doctors preview:', data.doctors?.length);
+      // Handle nested API response
+      const doctorsData = data?.data?.doctors || data?.doctors || [];
+      setDoctorsPreview(doctorsData);
+      console.log('👨‍⚕️ Doctors preview:', doctorsData.length);
     } catch (error) {
       console.error('Doctors preview error:', error);
     }
@@ -69,7 +72,9 @@ export default function Dashboard() {
   const fetchPatientsPreview = async () => {
     try {
       const { data } = await API.get('/patients', { params: { limit: 4 } });
-      setPatientsPreview(data.patients || []);
+      // Handle nested API response
+      const patientsData = data?.data?.patients || data?.patients || [];
+      setPatientsPreview(patientsData);
     } catch (error) {
       console.error('Patients preview error:', error);
     }
@@ -78,7 +83,9 @@ export default function Dashboard() {
   const fetchServicesPreview = async () => {
     try {
       const { data } = await API.get('/services', { params: { limit: 4 } });
-      setServicesPreview(data.services || data || []);
+      // Handle nested API response
+      const servicesData = data?.data?.services || data?.services || data || [];
+      setServicesPreview(servicesData);
     } catch (error) {
       console.error('Services preview error:', error);
     }
@@ -87,7 +94,9 @@ export default function Dashboard() {
   const fetchDepartmentsPreview = async () => {
     try {
       const { data } = await API.get('/departments', { params: { limit: 4 } });
-      setDepartmentsPreview(data.departments || data || []);
+      // Handle nested API response
+      const departmentsData = data?.data?.departments || data?.departments || data || [];
+      setDepartmentsPreview(departmentsData);
     } catch (error) {
       console.error('Departments preview error:', error);
     }
@@ -105,7 +114,7 @@ export default function Dashboard() {
     );
   }
 
-  const statCards = [
+const statCards = [
     {
       title: 'Total Patients',
       value: stats?.totalPatients || 0,
@@ -115,7 +124,7 @@ export default function Dashboard() {
       bgLight: 'bg-blue-50',
       textColor: 'text-blue-600',
       link: '/patients',
-      subtitle: `${stats?.activePatients || 0} active`,
+      subtitle: 'Registered patients',
     },
     {
       title: 'Total Doctors',
@@ -126,7 +135,7 @@ export default function Dashboard() {
       bgLight: 'bg-emerald-50',
       textColor: 'text-emerald-600',
       link: '/doctors',
-      subtitle: `${stats?.availableDoctors || 0} available`,
+      subtitle: 'In system',
     },
     {
       title: "Today's Appointments",
@@ -137,74 +146,49 @@ export default function Dashboard() {
       bgLight: 'bg-violet-50',
       textColor: 'text-violet-600',
       link: '/appointments',
-      subtitle: `${stats?.scheduledAppointments || 0} scheduled`,
+      subtitle: 'Scheduled today',
     },
     {
-      title: 'Departments',
-      value: stats?.totalDepartments || 0,
-      icon: FiLayers,
+      title: 'Total Appointments',
+      value: stats?.totalAppointments || 0,
+      icon: FiActivity,
       color: 'amber',
       gradient: 'from-amber-500 to-orange-500',
       bgLight: 'bg-amber-50',
       textColor: 'text-amber-600',
-      link: '/departments',
-      subtitle: 'Active departments',
-    },
-    {
-      title: 'Services',
-      value: stats?.totalServices || 0,
-      icon: FiTag,
-      color: 'rose',
-      gradient: 'from-rose-500 to-pink-500',
-      bgLight: 'bg-rose-50',
-      textColor: 'text-rose-600',
-      link: '/services',
-      subtitle: 'Hospital services',
+      link: '/appointments',
+      subtitle: 'All time',
     },
   ];
 
-  const summaryCards = [
+const summaryCards = [
     {
-      title: 'Revenue',
+      title: 'Total Revenue',
       value: `₹${(stats?.totalRevenue || 0).toLocaleString()}`,
       icon: FiDollarSign,
       color: 'text-emerald-600',
       bg: 'bg-emerald-50',
     },
     {
-      title: 'Completed',
-      value: stats?.completedAppointments || 0,
-      icon: FiCheckCircle,
+      title: 'Pending Amount',
+      value: `₹${(stats?.pendingPayments || 0).toLocaleString()}`,
+      icon: FiClock,
+      color: 'text-amber-600',
+      bg: 'bg-amber-50',
+    },
+    {
+      title: 'Today Appointments',
+      value: stats?.todayAppointments || 0,
+      icon: FiCalendar,
       color: 'text-blue-600',
       bg: 'bg-blue-50',
     },
     {
-      title: 'Cancelled',
-      value: stats?.cancelledAppointments || 0,
-      icon: FiAlertCircle,
-      color: 'text-red-500',
-      bg: 'bg-red-50',
-    },
-    {
-      title: 'Critical',
-      value: stats?.criticalPatients || 0,
+      title: 'Total Appointments',
+      value: stats?.totalAppointments || 0,
       icon: FiActivity,
-      color: 'text-orange-500',
-      bg: 'bg-orange-50',
-    },
-    {
-      title: 'Billed',
-      value: `₹${(stats?.paymentSummary?.totalBilled || 0).toLocaleString()}`,
-      icon: FiCreditCard,
       color: 'text-violet-600',
       bg: 'bg-violet-50',
-    },
-    {
-      title: 'Collected',
-      value: `₹${(stats?.paymentSummary?.totalCollected || 0).toLocaleString()}`,
-      icon: FiCheckCircle,
-      color: 'text-teal-600',
-      bg: 'bg-teal-50',
     },
   ];
 
