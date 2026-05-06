@@ -15,9 +15,9 @@ const AllBookings = () => {
 
   const fetchBookings = async () => {
     try {
-      const res = await axios.get('/bookings');
-      // API returns { bookings: [...], total, totalPages, currentPage }
-      setBookings(res.data.bookings || res.data);
+const res = await axios.get('/bookings');
+      // API returns { success: true, data: { bookings: [...] } } or { bookings: [...] }
+      setBookings(res.data.data?.bookings || res.data.bookings || res.data || []);
     } catch (err) {
       toast.error(err.response?.data?.message || err.message || 'Failed to load bookings. Please refresh the page.');
     } finally {

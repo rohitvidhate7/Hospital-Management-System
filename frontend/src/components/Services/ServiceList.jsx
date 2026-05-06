@@ -20,8 +20,8 @@ export default function ServiceList() {
       const params = {};
       if (search) params.search = search;
       if (categoryFilter) params.category = categoryFilter;
-      const { data } = await API.get('/services', { params });
-      setServices(data);
+const { data } = await API.get('/services', { params });
+      setServices(data.data?.services || data.services || data || []);
     } catch (error) {
       toast.error('Failed to load services');
     } finally {

@@ -18,9 +18,9 @@ export default function DepartmentList() {
       setLoading(true);
       const params = {};
       if (search) params.search = search;
-      const { data } = await API.get('/departments', { params });
-      setDepartments(data.departments || data || []);
-      const totalState = data.pagination?.total || data.length || 0;
+const { data } = await API.get('/departments', { params });
+      setDepartments(data.data?.departments || data.departments || data || []);
+      const totalState = data.data?.pagination?.total || data.pagination?.total || data.length || 0;
       // Note: No total state var, but consistent with backend
     } catch (error) {
       toast.error(error.response?.data?.message || error.message || 'Failed to load departments. Please refresh the page.');
