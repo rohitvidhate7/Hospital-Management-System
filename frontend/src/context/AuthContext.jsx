@@ -139,15 +139,34 @@ export const AuthProvider = ({ children }) => {
     console.log('👋 Logged out');
   };
 
-  // Stub missing endpoints - implement backend later
-  const requestLoginOtp = async () => {
-    throw new Error('Login OTP not implemented yet - use password login');
+  // OTP Login - request OTP to email
+  const requestLoginOtp = async (email) => {
+    console.log('📧 Requesting login OTP');
+    try {
+      const response = await API.post('/auth/login-otp/request', { email });
+      // Return data for dev mode OTP display
+      return response.data?.data;
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to send OTP';
+      console.error('💥 Request OTP failed:', errorMsg);
+      throw new Error(errorMsg);
+    }
   };
 
-  const verifyLoginOtp = async () => {
-    throw new Error('Login OTP not implemented yet - use password login');
+  // OTP Login - verify OTP and login
+  const verifyLoginOtp = async (email, otp) => {
+    console.log('✅ Verifying login OTP');
+    try {
+      const response = await API.post('/auth/login-otp/verify', { email, otp });
+      return saveAuth(response.data);
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || error.message || 'Invalid OTP';
+      console.error('💥 Verify OTP failed:', errorMsg);
+      throw new Error(errorMsg);
+    }
   };
 
+  // Stub functions for future implementation
   const requestPhoneOtp = async () => {
     throw new Error('Phone OTP not implemented');
   };
@@ -188,9 +207,10 @@ export const AuthProvider = ({ children }) => {
     register,
     googleLogin,
     logout,
-    // Legacy stubs for UI compatibility
+    // OTP login functions
     requestLoginOtp,
     verifyLoginOtp,
+    // Stub functions for UI compatibility
     requestPhoneOtp,
     verifyPhoneOtp,
     updateProfile,
@@ -209,4 +229,3 @@ export const AuthProvider = ({ children }) => {
 };
 
 export default AuthContext;
-

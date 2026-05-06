@@ -57,7 +57,7 @@ export default function Dashboard() {
     }
   };
 
-  const fetchDoctorsPreview = async () => {
+const fetchDoctorsPreview = async () => {
     try {
       const { data } = await API.get('/doctors', { params: { limit: 4, status: 'Available' } });
       // Handle nested API response
@@ -83,7 +83,7 @@ export default function Dashboard() {
   const fetchServicesPreview = async () => {
     try {
       const { data } = await API.get('/services', { params: { limit: 4 } });
-      // Handle nested API response
+      // Handle nested API response - services may return flat array or nested
       const servicesData = data?.data?.services || data?.services || data || [];
       setServicesPreview(servicesData);
     } catch (error) {
@@ -94,7 +94,7 @@ export default function Dashboard() {
   const fetchDepartmentsPreview = async () => {
     try {
       const { data } = await API.get('/departments', { params: { limit: 4 } });
-      // Handle nested API response
+      // Handle nested API response - departments may return flat array or nested
       const departmentsData = data?.data?.departments || data?.departments || data || [];
       setDepartmentsPreview(departmentsData);
     } catch (error) {

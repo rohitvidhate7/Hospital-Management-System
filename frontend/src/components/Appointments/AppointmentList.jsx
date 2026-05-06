@@ -22,9 +22,9 @@ export default function AppointmentList() {
       setLoading(true);
       const params = {};
       if (statusFilter) params.status = statusFilter;
-      const { data } = await API.get('/appointments', { params });
-      setAppointments(data.appointments || []);
-      setTotal(data.pagination?.total || 0);
+const { data } = await API.get('/appointments', { params });
+      setAppointments(data.data?.appointments || data.appointments || []);
+      setTotal(data.data?.pagination?.total || data.pagination?.total || 0);
     } catch (error) {
       toast.error(error.response?.data?.message || error.message || 'Failed to load appointments. Please refresh the page.');
     } finally {

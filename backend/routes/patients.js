@@ -13,24 +13,26 @@ const {
 
 const router = express.Router();
 
+// All routes require authentication
+router.use(protect);
+
 // GET /api/patients?search=&status=&page=&limit=
 router.get('/', 
   validateSearchQuery,
   checkValidation,
   getPatients
-); // TEMP: Public for dashboard testing - add protect back after auth fix
-
+);
 
 // GET /api/patients/:id
-router.get('/:id', protect, validateGetPatient, checkValidation, getPatient);
+router.get('/:id', validateGetPatient, checkValidation, getPatient);
 
 // POST /api/patients
-router.post('/', protect, authorize(['admin', 'receptionist']), validateCreatePatient, checkValidation, createPatient);
+router.post('/', authorize(['admin', 'receptionist']), validateCreatePatient, checkValidation, createPatient);
 
 // PUT /api/patients/:id
-router.put('/:id', protect, authorize(['admin', 'receptionist']), validateGetPatient, validateUpdatePatient, checkValidation, updatePatient);
+router.put('/:id', authorize(['admin', 'receptionist']), validateGetPatient, validateUpdatePatient, checkValidation, updatePatient);
 
 // DELETE /api/patients/:id
-router.delete('/:id', protect, authorize(['admin', 'receptionist']), validateGetPatient, checkValidation, deletePatient);
+router.delete('/:id', authorize(['admin', 'receptionist']), validateGetPatient, checkValidation, deletePatient);
 
 module.exports = router;

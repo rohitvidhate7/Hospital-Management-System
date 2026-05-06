@@ -21,9 +21,9 @@ export default function DoctorList() {
       const params = {};
       if (search) params.search = search;
       if (statusFilter) params.status = statusFilter;
-      const { data } = await API.get('/doctors', { params });
-      setDoctors(data.doctors || []);
-      setTotal(data.pagination?.total || 0);
+const { data } = await API.get('/doctors', { params });
+      setDoctors(data.data?.doctors || data.doctors || []);
+      setTotal(data.data?.pagination?.total || data.pagination?.total || 0);
     } catch (error) {
       toast.error(error.response?.data?.message || error.message || 'Failed to load doctors. Please refresh the page.');
     } finally {

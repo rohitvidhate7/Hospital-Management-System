@@ -21,9 +21,9 @@ export default function PatientList() {
       const params = {};
       if (search) params.search = search;
       if (statusFilter) params.status = statusFilter;
-      const { data } = await API.get('/patients', { params });
-      setPatients(data.patients || []);
-      setTotal(data.pagination?.total || 0);
+const { data } = await API.get('/patients', { params });
+      setPatients(data.data?.patients || data.patients || []);
+      setTotal(data.data?.pagination?.total || data.pagination?.total || 0);
     } catch (error) {
       toast.error(error.response?.data?.message || error.message || 'Failed to load patients. Please refresh the page.');
     } finally {
